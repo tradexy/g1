@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UK Energy Generation</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .chart-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>UK Energy Generation</h1>
+    <div class="chart-container">
+        <canvas id="energyChart"></canvas>
+    </div>
+    <script>
+        async function fetchData() {
+            const url = 'https://api.carbonintensity.org.uk/generation';
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.data.generationmix;
+        }
+
+        function createChart(energyData) {
+            const labels = energyData.map(item => item.fuel);
+            const percentages = energyData.map(item => item.perc);
+
+            const ctx = document.getElementById('energyChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: percentages,
+                        backgroundColor: [
+                            '#FF6384', // biomass
+                            '#051a0f', // coal
+                            '#718599', // imports
+                            '#f6dde0', // gas
+                            '#9966FF', // nuclear
+                            '#C9CBCF', // other
+                            '#4a97dd', // hydro
+                            '#FFCD56', // solar
+                            '#2fdb85'  // wind
+                        ],
+                        hoverBackgroundColor: [
+                            '#FF6384', // biomass
+                            '#051a0f', // coal
+                            '#718599', // imports
+                            '#f6dde0', // gas
+                            '#9966FF', // nuclear
+                            '#C9CBCF', // other
+                            '#4a97dd', // hydro
+                            '#FFCD56', // solar
+                            '#2fdb85'  // wind
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Current UK Energy Generation Mix',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        fetchData().then(data => createChart(data));
+    </script>
+</body>
+</html>

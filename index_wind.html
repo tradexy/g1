@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wind Energy Monitor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .windmill-container {
+            max-width: 600px;
+            margin: 30px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .windmill {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            margin: 20px auto;
+        }
+        .windmill-base {
+            width: 5px;
+            height: 150px;
+            background-color: #70a4b7;
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .windmill-blades {
+            width: 100px;
+            height: 100px;
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: spin 2s linear infinite;
+        }
+        .windmill-blade {
+            width: 75px;
+            height: 5px;
+            background-color: #A9A9A9;
+            position: absolute;
+            top: 47.5%;
+            left: 50%;
+            transform-origin: 0 50%;
+        }
+        .windmill-blade:nth-child(1) {
+            transform: rotate(0deg);
+        }
+        .windmill-blade:nth-child(2) {
+            transform: rotate(120deg);
+        }
+        .windmill-blade:nth-child(3) {
+            transform: rotate(240deg);
+        }
+        .windmill-center {
+            width: 2px;
+            height: 2px;
+            background-color: black;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+        @keyframes spin {
+            0% { transform: translateX(-50%) rotate(0deg); }
+            100% { transform: translateX(-50%) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="windmill-container">
+        <h2>Wind Energy Monitor</h2>
+        <p>Wind Energy Percentage: <span id="percentage"></span>%</p>
+        <div class="windmill">
+            <div class="windmill-base"></div>
+            <div class="windmill-blades">
+                <div class="windmill-blade"></div>
+                <div class="windmill-blade"></div>
+                <div class="windmill-blade"></div>
+                <div class="windmill-center"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function updateWindTurbine() {
+            const percentageElement = document.getElementById('percentage');
+            const windmillBlades = document.querySelector('.windmill-blades');
+
+            function updateData() {
+                fetch('https://api.carbonintensity.org.uk/generation')
+                    .then(response => response.json())
+                    .then(data => {
+                        const windPercentage = data.data.generationmix.find(item => item.fuel === 'wind').perc;
+                        percentageElement.textContent = windPercentage.toFixed(1);
+                        windmillBlades.style.animationDuration = `${2 / (windPercentage / 10)}s`;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+
+            updateData();
+            setInterval(updateData, 60000); // Update every 60 seconds (1 minute)
+        }
+
+        updateWindTurbine();
+    </script>
+</body>
+</html>

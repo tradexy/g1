@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuclear Energy Monitor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .nuclear-container {
+            max-width: 600px;
+            margin: 30px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .atom {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            margin: 20px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .nucleus {
+            width: 50px;
+            height: 50px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.8);
+            transition: box-shadow 0.5s, width 0.5s, height 0.5s;
+        }
+        .neutron {
+            width: 10px;
+            height: 10px;
+            background-color: #D50000; /* Red for neutron */
+            border-radius: 50%;
+            position: absolute;
+            animation: neutron-move 2s linear infinite;
+        }
+        .fission-fragment {
+            width: 25px;
+            height: 25px;
+            background-color: #FFC107; /* Amber for fragments */
+            border-radius: 50%;
+            position: absolute;
+            opacity: 0;
+            animation: fragment-appear 1s linear forwards; 
+        }
+        @keyframes neutron-move {
+            0% { transform: translate(-100px, 0); }
+            50% { transform: translate(0, 0); }
+            100% { transform: translate(100px, 0); }
+        }
+        @keyframes fragment-appear {
+            0% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="nuclear-container">
+        <h2>Nuclear Energy Monitor</h2>
+        <p>Nuclear Energy Percentage: <span id="percentage"></span>%</p>
+        <div class="atom">
+            <div class="nucleus">
+                <div class="neutron"></div> 
+            </div>
+            <div class="fission-fragment" style="top: 20px; left: 70px;"></div>
+            <div class="fission-fragment" style="bottom: 20px; right: 70px;"></div>
+        </div>
+    </div>
+    <script>
+        function updateNuclearAtom() {
+            const percentageElement = document.getElementById('percentage');
+            const nucleus = document.querySelector('.nucleus');
+            const neutron = document.querySelector('.neutron');
+            const fragments = document.querySelectorAll('.fission-fragment');
+
+            function updateData() {
+                fetch('https://api.carbonintensity.org.uk/generation')
+                    .then(response => response.json())
+                    .then(data => {
+                        const nuclearPercentage = data.data.generationmix.find(item => item.fuel === 'nuclear').perc;
+                        percentageElement.textContent = nuclearPercentage.toFixed(1);
+
+                        const intensity = Math.min(1, nuclearPercentage / 50);
+                        const nucleusSize = 30 + intensity * 20; 
+
+                        nucleus.style.boxShadow = `0 0 ${10 + intensity * 20}px rgba(76, 175, 80, 0.8)`;
+                        nucleus.style.width = `${nucleusSize}px`;
+                        nucleus.style.height = `${nucleusSize}px`;
+
+                        // Adjust neutron speed (faster with higher percentage)
+                        neutron.style.animationDuration = `${2 - intensity}s`; 
+
+                        // Control fragment visibility and animation delay based on intensity
+                        fragments.forEach(fragment => {
+                            fragment.style.animationDelay = `${0.5 - (intensity * 0.4)}s`; // Appear faster with higher intensity
+                            fragment.style.opacity = intensity; // More opaque with higher intensity
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+
+            updateData();
+            setInterval(updateData, 60000); 
+        }
+
+        updateNuclearAtom();
+    </script>
+</body>
+</html>
